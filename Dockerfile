@@ -15,6 +15,7 @@ RUN python3 -m pip install --upgrade pip && \
 # Copy the source code to the container
 COPY ./src/openai_discord_bot.py /code
 COPY ./src/openai_logger.py /code
+COPY ./check_permissions.sh /code
 
 # Create a non-root user named appuser
 RUN addgroup -g 1000 appuser && \
@@ -27,4 +28,4 @@ RUN chown -R appuser /code
 USER appuser
 
 # Start the bot when the container starts
-CMD ["python3", "/code/openai_discord_bot.py"]
+CMD ["/code/check_permissions.sh"]

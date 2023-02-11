@@ -1,6 +1,7 @@
 import os
 import datetime as dt
 import time
+from pathlib import Path
 
 from dotenv import load_dotenv
 import discord
@@ -21,11 +22,16 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 # Set up the model and prompt
 model_engine = os.environ.get('MODEL_ENGINE')
 
-log_db_path = os.environ.get('LOGS_SQLITE_DB')
+container_data_dir = os.environ.get('CONTAINER_DATA_DIR')
+db_file_name = os.environ.get('LOGS_SQLITE_DB')
+if not (container_data_dir and db_file_name):
+    raise FileNotFoundError("The database file environment variables were not set")
+
+log_db_path = Path(container_data_dir) / db_file_name
 log_db = LogDataManager(f'sqlite:///{log_db_path}')
 
 
-error_channel_id = os.environ.get('ERROR_CHANNEL_ID')
+error_channel_name = os.environ.get('ERROR_CHANNEL_NAME', 'error-log')
 
 
 @client.event
@@ -107,7 +113,7 @@ async def on_message(message):
             temperature=0.5,
         )
     except openai.error.RateLimitError:  # should do something special when this happens, such as retry
-        await send_error_message(error_channel_id, message, 'Got RateLimitError from openai api')
+        await send_error_message(message, 'Got RateLimitError from openai api')
         raise
     except Exception:
         raise
@@ -118,6 +124,8 @@ async def on_message(message):
                     response=response,
                     time=dt.datetime.fromtimestamp(int(completion.created)),
                     tokens=completion.usage['total_tokens'],
+                    user=message.author.name,
+                    user_id=message.author.id,
                     completion_obj=completion)
 
     await send_message(message.channel, response)

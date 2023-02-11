@@ -12,7 +12,6 @@ services:
 
     # Load environment variables from a file
     env_file: .env
-
-    # Mount the SQLite database file as a volume
+    # Mount the SQLite database file as a volume. Give read and write permissiosn to container
     volumes:
-      - ./openai_data_log.sqlite3:/code/openai_data_log.sqlite3
+      - ${LOCAL_DATA_DIR}:/${CONTAINER_DATA_DIR}:rw
