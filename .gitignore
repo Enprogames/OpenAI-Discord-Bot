@@ -1,0 +1,14 @@
+.env
+*.ipynb
+
+__pycache__
+venv
+logs
+test_cache
+NOTES.md
+src/test_client.py
+LINUX-KERNEL.md
+
+*.db
+*.sqlite3
+*.log
