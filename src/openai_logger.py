@@ -18,6 +18,8 @@ class LogData(Base):
 
     uid = Column(Integer, primary_key=True)
     time = Column(DateTime, default=dt.datetime.now)
+    user = Column(String, nullable=True)
+    user_id = Column(Integer, nullable=False)
     prompt = Column(String)
     response = Column(String)
     tokens = Column(Integer, nullable=True)
@@ -29,7 +31,8 @@ class LogData(Base):
             'time': self.time,
             'prompt': self.prompt,
             'response': self.response,
-            'tokens': self.tokens
+            'tokens': self.tokens,
+            'user': f"{self.user} ({self.user_id})"
         }}, indent=4)
 
     __repr__ = __str__
@@ -46,6 +49,7 @@ class LogDataManager:
         Base.metadata.create_all(self.engine)
 
     def log_data(self, prompt: str, response: str, time=dt.datetime.now(), tokens=None,
+                 user: str = None, user_id: int = None,
                  completion_obj: 'OpenAIObject' = None) -> None:
         """Log data to the database.
 
@@ -59,10 +63,12 @@ class LogDataManager:
         completion_obj_bytes = pickle.dumps(completion_obj)
 
         data = LogData(prompt=prompt,
-                            response=response,
-                            tokens=tokens,
-                            time=time,
-                            completion_obj=completion_obj_bytes)
+                       response=response,
+                       tokens=tokens,
+                       time=time,
+                       user=user,
+                       user_id=int(user_id),
+                       completion_obj=completion_obj_bytes)
         self.session.add(data)
         self.session.commit()
 
