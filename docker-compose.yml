@@ -1,9 +1,9 @@
 version: "3.8"
 
 services:
-  python_api:
+  python_discord_bot:
     # Give the service a unique name
-    container_name: python_api
+    container_name: python_discord_bot
 
     # Build the service using the Dockerfile in the current directory
     build:
@@ -15,3 +15,6 @@ services:
     # Mount the SQLite database file as a volume. Give read and write permissiosn to container
     volumes:
       - ${LOCAL_DATA_DIR}:/${CONTAINER_DATA_DIR}:rw
+    
+    # Set the user to run the container as
+    user: appuser

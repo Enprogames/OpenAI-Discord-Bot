@@ -1,31 +1,27 @@
-# Use the official Python 3.11 Alpine image as the base image
+# Use the Python 3.11 Alpine image
 FROM python:3.11-alpine
 
-# Set the working directory to /code
+# Set the working directory in the container
 WORKDIR /code
 
-# Copy the requirements file to the container
-COPY requirements.txt /code
+# create user with reduced permissions
+RUN adduser -D appuser
 
-# Upgrade pip and install the required packages
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install -r requirements.txt && \
-    python3 -m pip install -U discord.py
+# create the data directory and give ownership to user. this will allow the volume in docker-compose.yml
+# to be accessible to this user.
+RUN mkdir /data
+RUN chown appuser:appuser /data
 
-# Copy the source code to the container
-COPY ./src/openai_discord_bot.py /code
-COPY ./src/openai_logger.py /code
-COPY ./check_permissions.sh /code
-
-# Create a non-root user named appuser
-RUN addgroup -g 1000 appuser && \
-    adduser -u 1000 -G appuser -s /bin/ash -D appuser
-
-# Change the ownership of the /code directory to appuser
-RUN chown -R appuser /code
-
-# Use the appuser as the default user when running the container
+# Create a user with reduced permissions
 USER appuser
 
-# Start the bot when the container starts
-CMD ["/code/check_permissions.sh"]
+# Run the pip install command in user mode to install the dependencies
+COPY requirements.txt /code/requirements.txt
+RUN pip install --no-cache-dir --user -r /code/requirements.txt
+
+# Copy the application code from the host machine to the container
+COPY ./src/ /code/
+COPY ./check_permissions.sh /code/
+
+# Set the entry point for the container to run the python application
+ENTRYPOINT ["./check_permissions.sh"]
